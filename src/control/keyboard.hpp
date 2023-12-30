@@ -11,8 +11,9 @@ namespace gola
 {
     struct keyboard_t
     {
-        using action_type  = keys::key_action_t;
-        using call_type = std::function<void()>;
+        using action_type = keys::key_action_t;
+        using call_type   = std::function<void()>;
+        using handle_type = action_type;
         
         bool shift_pressed = false;
         bool ctrl_pressed  = false;
@@ -40,15 +41,31 @@ namespace gola
             fn();
         }
         
+        void remove(const handle_type& key)
+        {
+            subscriptions.erase(key);
+        }
+        
+        void clear()
+        {
+            held.clear();
+            subscriptions.clear();
+        }
+        
         bool is_held(const keys::key_t& key)
         {
             return held[key];
         }
         
         template <typename func_t>
-        void subscribe(const action_type& key, const func_t& func)
+        handle_type subscribe(const action_type& key, const func_t& func)
         {
+            if (subscriptions.find(key) != subscriptions.end())
+            {
+                throw std::runtime_error("Attempted to over-subscribe key " + key.to_string());
+            }
             subscriptions.insert({key, call_type(func)});
+            return key;
         }
     };
 }
