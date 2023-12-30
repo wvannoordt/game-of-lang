@@ -45,8 +45,6 @@ namespace gola
         text_menu_t main_menu;
         text_menu_t esc_menu;
         
-        
-        
         main_window_t(const asset_pool_t<sf::Font>& fonts_in, const asset_pool_t<sf::Texture>& txtrs_in)
         : all_fonts{fonts_in},
           all_textures{txtrs_in},
@@ -64,14 +62,14 @@ namespace gola
             this->subscribe(keyboard);
             
             background_context = nullptr;
-            current_context = nullptr;
+            current_context    = nullptr;
             
             esc_menu.add_option("Continue", [&]() { this->set_context(background_context); });
             esc_menu.add_option("Exit",     [&]() { this->window->close(); });
             
             main_menu.add_option("New Game", [&]() {  });
             main_menu.add_option("Load",     [&]() {  });
-            main_menu.add_option("Other",    [&]() {  });
+            main_menu.add_option("Options",  [&]() {  });
             main_menu.add_option("Exit",     [&]() { this->window->close(); });
             this->set_context(&main_menu);
         }
@@ -97,7 +95,7 @@ namespace gola
         {
             //Render the current scene
             // if (background_context != nullptr) background_context->draw(*window);
-            if (current_context != nullptr)    current_context->draw(*window);
+            if (current_context != nullptr) current_context->draw(*window);
             if (display_debug)
             {
                 debug_info.set_prop("framerate", std::to_string(frame_rate.fps()) + " fps");
@@ -109,6 +107,7 @@ namespace gola
         {
             while (window->isOpen())
             {
+                frame_rate.start();
                 sf::Event event;
                 // this->tick();
                 while (window->pollEvent(event))
@@ -123,6 +122,9 @@ namespace gola
                 window->clear({155, 155, 155, 255});
                 this->render();
                 window->display();
+                auto dur = frame_rate.get_pause_duration();
+                std::this_thread::sleep_for(dur);
+                frame_rate.stop();
             }
         }
     };

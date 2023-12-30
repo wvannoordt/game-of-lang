@@ -11,3 +11,6 @@ endif
 
 main:
 	g++ ${flags} -I./src main.cc -o a.x -lsfml-graphics -lsfml-window -lsfml-system
+
+clean:
+	rm -f ./a.x
