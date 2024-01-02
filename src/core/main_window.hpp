@@ -26,8 +26,8 @@ namespace gola
         keyboard_t keyboard;
         std::vector<typename keyboard_t::handle_type> keyboard_handles;
         
-        //Note that this "skeleton" context has no keyboard handles
         mouse_t mouse;
+        std::vector<typename mouse_t::mouse_handle_type> mouse_handles;
         
         
         debug_info_t debug_info;
@@ -60,6 +60,7 @@ namespace gola
             
             debug_info.add_prop("framerate", "?");
             this->subscribe(keyboard);
+            this->subscribe(mouse);
             
             background_context = nullptr;
             current_context    = nullptr;
@@ -76,12 +77,18 @@ namespace gola
         
         void subscribe(keyboard_t& board)
         {
-            //Note that this is permanently bound.
+            // Note that this is permanently bound.
             keyboard_handles.push_back(board.subscribe(keys::on_press(keys::i, keys::ctrl), [&]() { display_debug = !display_debug; }));
             keyboard_handles.push_back(board.subscribe(keys::on_press(keys::esc), [&]()
             {
                 if (current_context != &main_menu) { background_context = current_context; this->set_context(&esc_menu); }
             }));
+        }
+        
+        void subscribe(mouse_t& mouse_in)
+        {
+            // Note that this is permanently bound.
+            // mouse_handles.push_back(mouse.subscribe(mouse_event::move, [](const float& x, const float& y) { print(x, y); }));
         }
         
         void set_context(Igame_context_t* context)
