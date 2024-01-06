@@ -44,11 +44,11 @@ namespace gola
         
         void subscribe(keyboard_t& keyboard, mouse_t& mouse) override final
         {
-            this->keyboard_handles.push_back(keyboard.subscribe(keys::on_press(keys::enter),      [&]() { actions[selected](); }));
-            this->keyboard_handles.push_back(keyboard.subscribe(keys::on_press(keys::uppr_arrow), [&]() { this->cycle(-1); }));
-            this->keyboard_handles.push_back(keyboard.subscribe(keys::on_press(keys::down_arrow), [&]() { this->cycle(1);  }));
+            this->add_event(keyboard.subscribe(keys::on_press(keys::enter),      [&]() { actions[selected](); }));
+            this->add_event(keyboard.subscribe(keys::on_press(keys::uppr_arrow), [&]() { this->cycle(-1); }));
+            this->add_event(keyboard.subscribe(keys::on_press(keys::down_arrow), [&]() { this->cycle(1);  }));
             
-            this->mouse_handles.push_back(mouse.subscribe(mouse_event::move, [&](const float& x, const float& y)
+            this->add_event(mouse.subscribe(mouse_event::move, [&](const float& x, const float& y)
             {
                 int i = 0;
                 for (const auto& txt: options)
@@ -63,7 +63,7 @@ namespace gola
                 }
             }));
             
-            this->mouse_handles.push_back(mouse.subscribe(mouse_event::left_click, [&](const float& x, const float& y)
+            this->add_event(mouse.subscribe(mouse_event::left_click, [&](const float& x, const float& y)
             {
                 actions[selected]();
             }));

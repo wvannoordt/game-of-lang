@@ -8,9 +8,12 @@
 
 #include "core/frame_rate.hpp"
 #include "core/debug_info.hpp"
+#include "core/timer.hpp"
 
 #include "context/Igame_context.hpp"
 #include "context/text_menu.hpp"
+#include "context/topdown_env.hpp"
+#include "context/world_build.hpp"
 
 #include "control/keyboard.hpp"
 #include "control/mouse.hpp"
@@ -27,11 +30,14 @@ namespace gola
         std::vector<typename keyboard_t::handle_type> keyboard_handles;
         
         mouse_t mouse;
-        std::vector<typename mouse_t::mouse_handle_type> mouse_handles;
+        // std::vector<typename mouse_t::mouse_handle_type> mouse_handles;
         
         
         debug_info_t debug_info;
         frame_rate_t frame_rate;
+        
+        // world builder mode
+        world_builder_t world_builder;
         
         bool display_debug;
         
@@ -44,6 +50,8 @@ namespace gola
         
         text_menu_t main_menu;
         text_menu_t esc_menu;
+        
+        timer_t frame_timer;
         
         main_window_t(const asset_pool_t<sf::Font>& fonts_in, const asset_pool_t<sf::Texture>& txtrs_in)
         : all_fonts{fonts_in},
@@ -60,35 +68,36 @@ namespace gola
             
             debug_info.add_prop("framerate", "?");
             this->subscribe(keyboard);
-            this->subscribe(mouse);
+            // this->subscribe(mouse);
             
             background_context = nullptr;
             current_context    = nullptr;
             
-            esc_menu.add_option("Continue", [&]() { this->set_context(background_context); });
-            esc_menu.add_option("Exit",     [&]() { this->window->close(); });
+            esc_menu.add_option("Continue",  [&]() { this->set_context(background_context); });
+            esc_menu.add_option("Main Menu", [&]() { this->set_context(&main_menu); });
+            esc_menu.add_option("Exit",      [&]() { this->window->close(); });
             
-            main_menu.add_option("New Game", [&]() {  });
-            main_menu.add_option("Load",     [&]() {  });
-            main_menu.add_option("Options",  [&]() {  });
-            main_menu.add_option("Exit",     [&]() { this->window->close(); });
+            main_menu.add_option("New Game",     [&]() {  });
+            main_menu.add_option("Load",         [&]() {  });
+            main_menu.add_option("World Builder",[&]() { this->set_context(&world_builder); });
+            main_menu.add_option("Options",      [&]() {  });
+            main_menu.add_option("Exit",         [&]() { this->window->close(); });
             this->set_context(&main_menu);
         }
         
         void subscribe(keyboard_t& board)
         {
             // Note that this is permanently bound.
-            keyboard_handles.push_back(board.subscribe(keys::on_press(keys::i, keys::ctrl), [&]() { display_debug = !display_debug; }));
-            keyboard_handles.push_back(board.subscribe(keys::on_press(keys::esc), [&]()
+            this->add_event(board.subscribe(keys::on_press(keys::i, keys::ctrl), [&]() { display_debug = !display_debug; }));
+            this->add_event(board.subscribe(keys::on_press(keys::esc), [&]()
             {
                 if (current_context != &main_menu) { background_context = current_context; this->set_context(&esc_menu); }
             }));
         }
         
-        void subscribe(mouse_t& mouse_in)
+        void add_event(const keyboard_t::handle_type& handle)
         {
-            // Note that this is permanently bound.
-            // mouse_handles.push_back(mouse.subscribe(mouse_event::move, [](const float& x, const float& y) { print(x, y); }));
+            this->keyboard_handles.push_back(handle);
         }
         
         void set_context(Igame_context_t* context)
@@ -114,6 +123,7 @@ namespace gola
         {
             while (window->isOpen())
             {
+                frame_timer.start();
                 frame_rate.start();
                 sf::Event event;
                 // this->tick();
@@ -132,6 +142,11 @@ namespace gola
                 auto dur = frame_rate.get_pause_duration();
                 std::this_thread::sleep_for(dur);
                 frame_rate.stop();
+                frame_timer.stop();
+                if (current_context != nullptr)
+                {
+                    current_context->update(frame_timer.elapsed_seconds());
+                }
             }
         }
     };
