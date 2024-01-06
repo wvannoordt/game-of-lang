@@ -59,7 +59,8 @@ namespace gola
           frame_rate(60.0),
           debug_info(fonts_in["noto_mono"]),
           main_menu(fonts_in["noto_mono"]),
-          esc_menu(fonts_in["noto_mono"])
+          esc_menu(fonts_in["noto_mono"]),
+          world_builder(fonts_in, txtrs_in)
         {
             const int init_wid = sf::VideoMode::getDesktopMode().width;
             const int init_hei = sf::VideoMode::getDesktopMode().height;
